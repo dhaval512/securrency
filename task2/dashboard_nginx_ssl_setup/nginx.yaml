@@ -1,0 +1,43 @@
+controller:
+  ingressClass: internet-facing-ingress
+  autoscaling:
+    enabled: "true"
+    minReplicas: 2
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 60
+  resources:
+    requests:
+      cpu: 0.02
+      memory: 0.15Gi
+    limits:
+      cpu: 0.2
+      memory: 0.2Gi
+  config:
+    use-forwarded-headers: "true"
+    hide-headers: "X-Powered-By"
+    http-snippet: |
+      proxy_cache_path /tmp/nginx-cache levels=1:2 keys_zone=images:20m inactive=1d max_size=5g use_temp_path=off;
+    # ssl-redirect: "false" # we use `special` port to control ssl redirection
+    # server-snippet: |
+    #   listen 8000;
+    #   if ( $server_port = 80 ) {
+    #      return 308 https://$host$request_uri;
+    #   }
+  containerPort:
+    http: 80
+    https: 443
+    # special: 8000
+  service:
+    targetPorts:
+      http: http
+      # https: special
+      https: https
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "Name=eks-cluster, ingress=nginx-ingress"
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+      service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: '60'
+      service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
+      service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    externalTrafficPolicy: Local
+defaultBackend:
+  enabled: true

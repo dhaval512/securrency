@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ams.fullname" . }}
+  labels:
+    {{- include "ams.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "ams.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "ams.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.existingVolume.enabled }}
+      volumes:
+        - name: {{ .Values.existingVolume.PVname }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.existingVolume.claimName }}
+      {{- else }}
+      volumes:
+        - name: {{ .Values.volume.PVname }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.volume.claimName }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ .Values.image.repository }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            {{- if .Values.existingVolume.enabled }}
+            - name: {{ .Values.existingVolume.PVname }}
+            {{- else }}
+            - name: {{ .Values.volume.PVname }}
+            {{- end }}
+              mountPath: "/var/www/html"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

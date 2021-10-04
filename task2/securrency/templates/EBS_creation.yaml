@@ -1,0 +1,35 @@
+{{- if .Values.volume.enabled -}}
+{{- if .Values.existingVolume.enabled -}}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.existingVolume.PVname }}
+  label:
+   type: local
+spec:
+  capacity:
+    storage: {{ .Values.existingVolume.storage }}
+    accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.existingVolume.claimName }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  resources:
+    requests:
+      storage: {{ .Values.existingVolume.storage }}
+{{ else }}
+# if not then make new dynamic EBS
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.volume.storageclass }}
+volumeBindingMode: Immediate
+reclaimPolicy: Retain
+allowVolumeExpansion: true

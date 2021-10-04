@@ -1,0 +1,90 @@
+
+
+replicaCount: 1
+
+image:
+  repository: repo url
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "internet-facing-ingress"
+  annotations: 
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # certmanager.k8s.io/acme-challenge-type: http01
+    nginx.ingress.kubernetes.io/proxy-body-size: "600m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "50"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "100"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "50"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.org/client-max-body-size: "600m"
+  hosts:
+    - host: securrency.test.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+   - secretName: securrency-tls
+     hosts:
+       - securrency.test.com
+
+resources: 
+  requests:
+    memory: "128Mi"
+    cpu: "70m"
+  limits:
+    memory: "256Mi"
+    cpu: "250m"
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# create dynamic volume
+volume:
+  enabled: true
+  PVname: securrency
+  storage: 5Gi
+  claimName: securrency
+  storageclass: securrency-sc
