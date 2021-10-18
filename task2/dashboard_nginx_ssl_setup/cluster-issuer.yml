@@ -5,6 +5,7 @@ metadata:
 spec:
   acme:
     # The ACME server URL
+    #works fine
     server: https://acme-v02.api.letsencrypt.org/directory
     # Email address used for ACME registration
     email: test@gmsil.com
@@ -16,3 +17,4 @@ spec:
     - http01:
         ingress:
           class: "internet-facing-ingress"
+          
