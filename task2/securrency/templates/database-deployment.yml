@@ -1,32 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql
+  name: postgres
 spec:
   selector:
     matchLabels:
-      app: mysql
+      app: postgres
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: mysql
+        app: postgres
     spec:
       containers:
-      - image: mysql:5.6
-        name: mysql
+      - image: postgres:latest
+        name: postgres
         env:
           # Use secret in real usage
-        - name: MYSQL_ROOT_PASSWORD
+        - name: postgres_ROOT_PASSWORD
           value: password
         ports:
         - containerPort: 5432
           name: mysql
         volumeMounts:
-        - name: mysql-persistent-storage
-          mountPath: /var/lib/mysql
+        - name: postgres-persistent-storage
+          mountPath: /var/lib/postgres
       volumes:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
-          claimName: mysql-pv-claim
+          claimName: postgres-pv-claim
